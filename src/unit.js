@@ -57,7 +57,7 @@ class NativeUnit extends Unit {
           const childUnit = createUnit(child); 
           childUnit._mountIndex = index; // 记录当前子节点在所有子节点中的位置
           this._renderedChildrenUnits.push(childUnit);
-          const childMarkup = childUnit.getMarkUp(`${this._reactId}.${index}`);
+          const childMarkup = childUnit.getMarkUp(`${this._reactId}_${index}`);
           childrenString += childMarkup;
         });
       } else {
