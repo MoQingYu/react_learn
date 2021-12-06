@@ -22,35 +22,35 @@ function renderDemo2 (container) {
     }
 
     handleClick = () => {
-      // console.log('handleClick');
+      console.log('handleClick');
       this.setState({number: this.state.number + 1})
     }
     // mount阶段生命周期
     componentWillMount() {
-      // console.log('componentWillMount');
+      console.log('componentWillMount');
     }
 
     componentDidMount() {
-      // console.log('componentDidMount')
+      console.log('componentDidMount')
     }
 
     // update阶段
     componentWillReceiveProps(nextProps) {
-      // console.log('componentWillReceiveProps', nextProps);
+      console.log('componentWillReceiveProps', nextProps);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-      // console.log('shouldComponentUpdate', nextProps, nextState);
+      console.log('shouldComponentUpdate', nextProps, nextState);
       return true;
     }
 
     componentDidUpdate(prevProps, prevState) {
-      // console.log('componentDidUpdate', prevProps, prevState)
+      console.log('componentDidUpdate', prevProps, prevState)
     }
 
     // 卸载阶段
     componentDidUnMount() {
-      // console.log('componentDidUnMount')
+      console.log('componentDidUnMount')
     }
 
     render() {

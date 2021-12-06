@@ -98,7 +98,7 @@ class NativeUnit extends Unit {
           $(`[data-reactid="${this._reactId}"]`).css(attr, value);
         })
       } else {
-        $(`[data-reactid="${this._reactId}"]`).props(propName, newProps[propName]);
+        $(`[data-reactid="${this._reactId}"]`).prop(propName, newProps[propName]);
       }
     }
   }
