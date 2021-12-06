@@ -51,7 +51,7 @@ class NativeUnit extends Unit {
         }" `
       } else if(/^on[A-Z]/.test(propName)) { // 绑定事件
         const eventName = propName.slice(2).toLowerCase()
-        $(document).delegate([`data-reactid="${this._reactId}"`], `${eventName}.${this._reactId}`, props[propName]);
+        $(document).delegate(`[data-reactid="${this._reactId}"]`, `${eventName}.${this._reactId}`, props[propName]);
       } else if(propName === 'children') {
         (props[propName]).forEach((child, index) => {
           const childUnit = createUnit(child); 
@@ -217,8 +217,8 @@ class NativeUnit extends Unit {
     }
     $.each(deleteChildren, (i, item) => $(item).remove());
 
-    for (let i= 0; i < this.diffQueue.length; i++) {
-      const difference = this.diffQueue[i];
+    for (let i= 0; i < diffQueue.length; i++) {
+      const difference = diffQueue[i];
       switch(difference.type) {
         case types.INSERT: 
           this.insertChildAt(difference.parentNode, difference.toIndex, $(difference.markUp));
@@ -296,8 +296,8 @@ function shouldDeepCompare(oldElement, newElement) {
     if((oldType === "number" || oldType === "string") && (newType === "number" || newType === "string")) {
       return true;
     }
-    if(oldType instanceof Element && newElement instanceof Element) {
-      return oldElement.type === newElement.type;
+    if(oldElement instanceof Element && newElement instanceof Element) {
+      return oldElement.type == newElement.type;
     }
   }
   return false;
