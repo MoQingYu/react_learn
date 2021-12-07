@@ -76,7 +76,7 @@ class NativeUnit extends Unit {
 
   updateDOMProperties(oldProps, newProps) {
     let propName;
-    for(propName in oldProps) {
+    for(propName in oldProps) { //移除老的props中的属性以及事件
       if(!newProps.hasOwnProperty(propName)) {
         $(`[data-reactid="${this._reactId}"]`).removeAttr(propName);
       }
@@ -115,15 +115,17 @@ class NativeUnit extends Unit {
   }
 
   diff(diffQueue, newChildrenElements) {
+    // 生成一个map，key等于老的unit
     let oldChildrenUnitMap = this.getOldChildrenMap(this._renderedChildrenUnits);
+    // 生成一个新的儿子unit的数组
     let { newChildrenUnitMap, newChildrenUnits } = this.getNewChildren(oldChildrenUnitMap, newChildrenElements);
-    let lastIndex = 0; 
+    let lastIndex = 0; //上一个已经确定位置的索引
     for (let i = 0; i < newChildrenUnits.length; i++) {
       const newUnit = newChildrenUnits[i];
       const newKey = newUnit._currentElement.props && newUnit._currentElement.props.key || i.toString();
       const oldChildUnit = oldChildrenUnitMap[newKey];
-      if(oldChildUnit === newUnit) {
-        if(oldChildUnit._mountIndex < lastIndex) {
+      if(oldChildUnit === newUnit) { //新老节点一致，则老的节点可以复用
+        if(oldChildUnit._mountIndex < lastIndex) { //当前节点的index小于上一个已经确定位置的索引(lastIndex),需要进行移动操作
           diffQueue.push({
             parentId: this._reactId,
             parentNode: $(`[data-reactid="${this._reactId}"]`),
@@ -134,6 +136,7 @@ class NativeUnit extends Unit {
         }
         lastIndex = Math.max(lastIndex, oldChildUnit._mountIndex);
       } else {
+        // 新旧节点不匹配且老节点存在，则老节点需要进行删除操作
         if(oldChildUnit) {
           diffQueue.push({
             parentId: this._reactId,
@@ -144,6 +147,7 @@ class NativeUnit extends Unit {
           this._renderedChildrenUnits = this._renderedChildrenUnits.filter(item => item != oldChildUnit);
           $(document).undelegate(`.${oldChildUnit._reactId}`)
         }
+        // 而新节点进行插入操作
         diffQueue.push({
           parentId: this._reactId,
           parentNode: $(`[data-reactid="${this._reactId}"]`),
@@ -156,6 +160,7 @@ class NativeUnit extends Unit {
     }
     for(let oldKey in oldChildrenUnitMap) {
       let oldChild = oldChildrenUnitMap[oldKey];
+      //假如老节点列表中存在，新节点列表中不存在的老节点，则都需要进行删除操作
       if(!newChildrenUnitMap.hasOwnProperty(oldKey)) {
         diffQueue.push({
           parentId: this._reactId,
@@ -163,7 +168,9 @@ class NativeUnit extends Unit {
           type: types.REMOVE,
           fromIndex: oldChild._mountIndex
         })
+        // 删除调某个节点，也要把对应的unit对象也给删掉
         this._renderedChildrenUnits = this._renderedChildrenUnits.filter(item => item != oldChild);
+        // 删除改节点对应的事件委托
         $(document).undelegate(`.${oldChild._reactId}`);
       }
     }
