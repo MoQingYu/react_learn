@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>requestIdleCallback</title>
+</head>
+<body>
+</body>
+<script>
+
+  // 使用requestAnimationFrame + MessageChannel实现requestIdleCallback
+  const channel = new MessageChannel();
+  const activeFrameTime = 1000 / 60;
+  let frameDeadline; //这一帧的截止时间
+  let pendingCallback;
+  const timeRemaining = () => frameDeadline - performance.now();
+
+  channel.port2.onmessage = () => {
+    const currentTime = performance.now();
+    // 如果帧的截止时间已经小于当前时间，说明已经过期了
+    const didTimeout = frameDeadline <= currentTime;
+    // 因此必须执行该目标任务
+    if(didTimeout || timeRemaining() > 0) {
+      if(pendingCallback) {
+        pendingCallback({didTimeout, timeRemaining});
+      }
+    }
+  }
+
+  window.requestIdleCallback = (callback, options) => {
+    requestAnimationFrame((rafTime) => {
+      console.log('rafTime: ', rafTime);
+      // 每一帧开始的时间加上16.6就是一帧的截止时间
+      frameDeadline = rafTime + activeFrameTime;
+      pendingCallback = callback;
+      // 发送消息之后，相当于添加了一个宏任务
+      channel.port1.postMessage("");
+    })
+  }
+
+  // requestAnimationFrame((timetemp) => console.log(timetemp));
+
+  // eg. requestIdleCallback使用方式
+  function sleep(duration) {
+    const start = Date.now();
+    while(start + duration > Date.now()) {}
+  }
+
+  const workQueue = [
+    ()=> {
+      console.log('A1开始')
+      // sleep(20)
+      console.log('A1结束')
+    },
+    ()=> {
+      console.log('A2开始')
+      // sleep(20)
+      console.log('A2结束')
+    },
+    ()=> {
+      console.log('A3开始')
+      // sleep(20)
+      console.log('A3结束')
+    },
+    ()=> {
+      console.log('A4开始')
+      sleep(20)
+      console.log('A4结束')
+    },
+    ()=> {
+      console.log('A5开始')
+      // sleep(20)
+      console.log('A5结束')
+    },
+  ]
+  
+  // FPS：每一秒屏幕的刷新次数，一般为60
+  // 浏览器有任务时，每一帧的时间大约是(1000ms / 屏幕的刷新频率(FPS))，即16.7ms；
+  // 空闲时，每一帧大约是50ms
+  requestIdleCallback(workLoop, { timeout: 1000 });
+  function workLoop(deadline) {
+    console.log('本帧剩余时间: ', parseInt(deadline.timeRemaining()))
+    // 如果拥有剩余时间的话，且任务队列不为空
+    while(
+      (
+        deadline.timeRemaining() > 0 || 
+        deadline.didTimeout
+      ) && 
+      workQueue.length > 0
+    ) {
+      performUnitOfWork();
+    }
+    if(workQueue.length > 0) {
+      console.log(`只剩下${deadline.timeRemaining()}, 时间片已经到期了，等待下次调度`);
+      requestIdleCallback(workLoop);
+    }
+  }
+
+  function performUnitOfWork() {
+    const work = workQueue.shift();
+    work();
+  }
+</script>
+</html>
